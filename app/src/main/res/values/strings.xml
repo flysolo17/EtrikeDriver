@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Etrike Driver</string>
+
+
+
+    <string name="gcp_id">355257698538-ud3uccgohh34emusoio2qpa29vh23lqi.apps.googleusercontent.com</string>
+    <string name="logo">Logo</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="password">Password</string>
+    <string name="email">Email</string>
+    <string name="back">Back</string>
+    <string name="register">Register</string>
+    <string name="don_t_have_an_account">"Don’t have an account? "</string>
+    <string name="confirm_password">Confirm Password</string>
+
+    <string name="reset_message">If you lost your password and wish to reset it , enter your email below and so that we can send you the reset link.</string>
+    <string name="reset_password">Reset Password</string>
+
+</resources>
