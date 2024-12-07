@@ -8,6 +8,8 @@ import android.location.Geocoder
 import android.location.Location
 import android.widget.Toast
 import com.google.android.gms.maps.model.LatLng
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import kotlin.math.round
 
@@ -95,3 +97,9 @@ fun Double.toPhp(): String {
     return "₱ %.2f".format(this)
 }
 
+
+
+fun Date.display(): String {
+    val formatter = SimpleDateFormat("MMM dd, hh:mm aa", Locale.getDefault())
+    return formatter.format(this)
+}

@@ -8,6 +8,8 @@ import com.flysolo.etrikedriver.repository.directions.DirectionsRepository
 import com.flysolo.etrikedriver.repository.directions.DirectionsRepositoryImpl
 import com.flysolo.etrikedriver.repository.franchise.FranchiseRepository
 import com.flysolo.etrikedriver.repository.franchise.FranchiseRepositoryImpl
+import com.flysolo.etrikedriver.repository.messages.MessageRepository
+import com.flysolo.etrikedriver.repository.messages.MessageRepositoryImpl
 import com.flysolo.etrikedriver.repository.transactions.TransactionRepository
 import com.flysolo.etrikedriver.repository.transactions.TransactionRepositoryImpl
 import com.flysolo.etrikedriver.services.GoogleDirectionsService
@@ -98,6 +100,12 @@ object AppModule {
     @Singleton
     fun provideTransactionRepository(firestore :FirebaseFirestore): TransactionRepository {
         return TransactionRepositoryImpl(firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMessage(auth: FirebaseAuth,firestore :FirebaseFirestore): MessageRepository {
+        return MessageRepositoryImpl(auth,firestore)
     }
 
 

@@ -23,11 +23,11 @@ data class BottomNavigationItems(
                 route = AppRouter.HOME.route
             ),
             BottomNavigationItems(
-                label = "Activity",
-                selectedIcon = R.drawable.ic_activities_filled,
-                unselectedIcon = R.drawable.ic_activities_outline,
+                label = "Trips",
+                selectedIcon = R.drawable.baseline_map_24,
+                unselectedIcon = R.drawable.baseline_map_24,
                 hasNews = false,
-                route = AppRouter.ACTIVITY.route
+                route = AppRouter.TRIPS.route
             ),
             BottomNavigationItems(
                 label = "Profile",

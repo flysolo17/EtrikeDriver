@@ -13,6 +13,23 @@ sealed class AppRouter(
     //BOTTOM NAV
     data object HOME : AppRouter(route = "home")
     data object QUEUE : AppRouter(route = "queue")
+    data object TRIPS : AppRouter(route = "trips")
     data object ACTIVITY : AppRouter(route = "activity")
     data object PROFILE : AppRouter(route = "profile")
+
+
+    //others
+    data object VIEWTRIP : AppRouter(route = "transaction/{id}") {
+        fun navigate(id: String): String {
+            return "transaction/$id"
+        }
+    }
+
+    data object RIDE : AppRouter(route = "ride")
+
+    data object CONVERSATION : AppRouter(route = "conversation/{id}") {
+        fun navigate(id: String): String {
+            return "conversation/$id"
+        }
+    }
 }

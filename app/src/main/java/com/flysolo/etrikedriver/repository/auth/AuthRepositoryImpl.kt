@@ -14,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObject
 
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.delay
@@ -73,6 +74,7 @@ class AuthRepositoryImpl(
                     )
                     Result.success(userWithVerification)
                 } else {
+
                     Result.success(null)
                 }
             }
@@ -203,6 +205,15 @@ class AuthRepositoryImpl(
         } catch (e: Exception) {
 
             Result.failure(Exception("Failed to send password reset email: ${e.message}"))
+        }
+    }
+
+    override suspend fun getUser(id: String): Result<User?> {
+        return try {
+            val result = firestore.collection(USER_COLLECTION).document(id).get().await().toObject<User>()
+            Result.success(result)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

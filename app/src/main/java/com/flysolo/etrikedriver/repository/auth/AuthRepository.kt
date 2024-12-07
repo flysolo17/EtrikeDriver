@@ -33,4 +33,7 @@ interface AuthRepository {
     suspend fun listenToUserEmailVerification() : Result<Boolean>
 
     suspend fun forgotPassword(email : String) : Result<String>
+
+
+    suspend fun getUser(id : String) : Result<User?>
 }

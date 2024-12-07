@@ -1,9 +1,12 @@
 package com.flysolo.etrikedriver.screens.main.bottom_nav.home
 
+import android.content.Intent
+import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,10 +21,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -30,8 +36,11 @@ import androidx.navigation.NavHostController
 import com.flysolo.etrikedriver.R
 import com.flysolo.etrikedriver.config.AppRouter
 import com.flysolo.etrikedriver.models.users.User
+import com.flysolo.etrikedriver.screens.main.bottom_nav.home.components.RecentTripsLayout
 import com.flysolo.etrikedriver.screens.nav.BottomNavigationItems
 import com.flysolo.etrikedriver.screens.shared.Avatar
+import com.flysolo.etrikedriver.utils.getLatLngFromAddress
+import com.google.android.gms.maps.model.LatLng
 
 
 @Composable
@@ -41,6 +50,12 @@ fun HomeScreen(
     events: (HomeEvents) -> Unit,
     navHostController: NavHostController
 ) {
+    val context = LocalContext.current
+    LaunchedEffect(state.user) {
+        state.user?.id?.let {
+            events(HomeEvents.OnGetOngoingTrips(it))
+        }
+    }
     LazyVerticalGrid(
       columns =GridCells.Fixed(2),
         contentPadding = PaddingValues(8.dp),
@@ -56,6 +71,41 @@ fun HomeScreen(
                 )
             }
         }
+        if (state.ongoingTrips.isNotEmpty()) {
+            item(span = { GridItemSpan(2) }) {
+                Row(
+                    modifier = modifier.fillMaxWidth().padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Ongoing Trips (${state.ongoingTrips.size})",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+
+                    TextButton(onClick = {}) { Text("See all") }
+                }
+            }
+
+            item(span = { GridItemSpan(2) }) {
+                RecentTripsLayout(
+                    trips =  state.ongoingTrips,
+                    isLoading = state.isGettingTransactions,
+                    goToPickUp = {
+                       events.invoke(HomeEvents.OnPickup(it,context))
+                    },
+                    onTripSelected = {
+                        navHostController.navigate(AppRouter.VIEWTRIP.navigate(it))
+                    },
+                    message = {
+                        navHostController.navigate(AppRouter.CONVERSATION.navigate(it))
+                    }
+                )
+            }
+        }
+
+
         item(
             span = { GridItemSpan(2) }
         ) {

@@ -3,6 +3,8 @@ package com.flysolo.etrikedriver.screens.main.bottom_nav.utils
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +24,7 @@ fun InformationCard(
     label : String,
     icon : ImageVector,
     value : String ? = null,
+    desc : String ? = null,
     ) {
     OutlinedCard(
         modifier =  modifier.fillMaxWidth()
@@ -50,6 +53,15 @@ fun InformationCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+            },
+            supportingContent = {
+                desc?.let {
+                    Badge(
+                        content ={
+                            Text("${desc}", style = MaterialTheme.typography.labelSmall.copy())
+                        }
+                    )
+                }
             }
         )
     }
