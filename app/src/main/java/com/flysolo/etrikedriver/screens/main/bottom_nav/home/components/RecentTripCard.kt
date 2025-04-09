@@ -97,8 +97,8 @@ fun RecentTripCard(
                 Column(
                     modifier = modifier.weight(1f).padding(4.dp)
                 ) {
-                    val pickLocation = transactions.rideDetails?.routes?.firstOrNull()?.legs?.firstOrNull()?.start_address
-                    val dropLocation = transactions.rideDetails?.routes?.firstOrNull()?.legs?.firstOrNull()?.end_address
+                    val pickLocation = transactions.locationDetails.pickup?.name
+                    val dropLocation = transactions.locationDetails?.dropOff?.name
 
                     TripInfo(
                         label = "Pickup Location",

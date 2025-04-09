@@ -42,6 +42,7 @@ fun TripScreen(
             context.shortToast(state.errors)
         }
     }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(8.dp),

@@ -1,29 +1,43 @@
 package com.flysolo.etrikedriver.repository.auth
 
+import android.app.Activity
+import android.net.Uri
 import android.util.Log
+import androidx.compose.material3.rememberModalBottomSheetState
 import com.flysolo.etrikedriver.models.contacts.CONTACT_COLLECTION
 import com.flysolo.etrikedriver.models.contacts.Contacts
+import com.flysolo.etrikedriver.models.users.Pin
 
 import com.flysolo.etrikedriver.models.users.UserWithVerification
 import com.flysolo.etrikedriver.models.users.USER_COLLECTION
 import com.flysolo.etrikedriver.models.users.User
 import com.flysolo.etrikedriver.models.users.UserType
+import com.flysolo.etrikedriver.utils.UiState
 import com.flysolo.etrikedriver.utils.generateRandomNumberString
+import com.flysolo.etrikedriver.utils.generateRandomString
+import com.google.firebase.FirebaseException
+import com.google.firebase.auth.EmailAuthProvider
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.PhoneAuthOptions
+import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.concurrent.TimeUnit
 
 class AuthRepositoryImpl(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
-    storage: FirebaseStorage,
+    private  val storage: FirebaseStorage,
 
     ): AuthRepository {
     override suspend fun signInWithGoogle(idToken: String): Result<UserWithVerification?> {
@@ -68,14 +82,19 @@ class AuthRepositoryImpl(
                     .await()
                 if (userDocument.exists()) {
                     val user = userDocument.toObject(User::class.java)
-                    val userWithVerification = UserWithVerification(
-                        user = user!!,
-                        isVerified = firebaseUser.isEmailVerified
-                    )
-                    Result.success(userWithVerification)
-                } else {
+                    if (user?.type == UserType.PASSENGER) {
+                        auth.signOut()
+                        Result.failure(Error("User Not Found!"))
+                    } else {
+                        val userWithVerification = UserWithVerification(
+                            user = user!!,
+                            isVerified = firebaseUser.isEmailVerified
+                        )
+                        Result.success(userWithVerification)
+                    }
 
-                    Result.success(null)
+                } else {
+                    Result.failure(Error("User Not Found!"))
                 }
             }
         } catch (e: Exception) {
@@ -214,6 +233,216 @@ class AuthRepositoryImpl(
             Result.success(result)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    override suspend fun changePassword(
+        oldPassword: String,
+        newPassword: String,
+        result: (UiState<String>) -> Unit
+    ) {
+        try {
+            result.invoke(UiState.Loading)
+            val currentUser = auth.currentUser
+
+            if (currentUser != null) {
+                val credential = EmailAuthProvider.getCredential(currentUser.email!!, oldPassword)
+                currentUser.reauthenticate(credential).await()
+                currentUser.updatePassword(newPassword).await()
+
+                result.invoke(UiState.Success("Password updated successfully."))
+            } else {
+
+                result.invoke(UiState.Error("User is not logged in."))
+            }
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            result.invoke(UiState.Error("Old password is incorrect."))
+        } catch (e: Exception) {
+            result.invoke(UiState.Error(e.message.toString()))
+        }
+    }
+
+    override suspend fun deleteAccount(uid: String,password: String, result: (UiState<String>) -> Unit) {
+        try {
+            result(UiState.Loading)
+            val user = auth.currentUser
+            if (user != null) {
+                val email = user.email
+                val credential = EmailAuthProvider.getCredential(email!!, password)
+                user.reauthenticate(credential).await()
+                user.delete().await()
+            }
+
+            val userDocRef = firestore.collection(USER_COLLECTION).document(uid)
+            userDocRef.delete().await()
+            result(UiState.Success("Account deleted successfully"))
+        } catch (e: Exception) {
+            result(UiState.Error(e.localizedMessage ?: "Failed to delete account"))
+        }
+    }
+
+
+    override suspend fun changeProfile(uid: String, uri: Uri, result: (UiState<String>) -> Unit) {
+        try {
+            result(UiState.Loading)
+
+
+            val storageReference = storage.reference
+            val profilePictureRef = storageReference.child("profile_pictures/${generateRandomString(6)}.jpg")
+
+            val uploadTask = profilePictureRef.putFile(uri).await()
+
+
+            val downloadUrl = profilePictureRef.downloadUrl.await()
+
+            firestore.collection(USER_COLLECTION)
+                .document(uid)
+                .update("profile",downloadUrl)
+                .await()
+            result(UiState.Success("Profile picture updated: $downloadUrl"))
+
+        } catch (exception: Exception) {
+
+            result(UiState.Error("Error: ${exception.message}"))
+        } catch (e : FirebaseException) {
+
+            result(UiState.Error("Error: ${e.message}"))
+        }
+    }
+
+    override suspend fun updateUserInfo(
+        uid: String,
+        name: String,
+        phone: String,
+        result: (UiState<String>) -> Unit
+    ) {
+        try {
+            // Assume you have a Firestore instance to update user info in a "users" collection
+            val userDocRef = firestore.collection(USER_COLLECTION).document(uid)
+
+            // Update the user document with the new info
+            userDocRef.update(
+                mapOf(
+                    "name" to name,
+                    "phone" to phone
+                )
+            ).await()
+
+            result(UiState.Success("User information updated successfully!"))
+        } catch (e: Exception) {
+            result(UiState.Error(e.localizedMessage ?: "Failed to update user info"))
+        }
+    }
+
+    override suspend fun getUserByID(id: String, result: (UiState<User?>) -> Unit) {
+        result.invoke(UiState.Loading)
+        firestore.collection(
+            USER_COLLECTION
+        ).document(id)
+            .addSnapshotListener { value, error ->
+                error?.let {
+                    result(UiState.Error(it.message.toString()))
+                }
+                value?.let {
+                    val data = it.toObject<User>()
+                    result(UiState.Success(data))
+                }
+            }
+    }
+
+    override suspend fun getCurrentUserInRealtime(result: (UiState<User?>) -> Unit) {
+        result(UiState.Loading)
+        val uid = auth.currentUser?.uid
+        if (uid.isNullOrEmpty()) {
+            result(UiState.Error("User Not Found!"))
+            return
+        }
+        firestore.collection(USER_COLLECTION)
+            .document(uid)
+            .addSnapshotListener { value, error ->
+                if (error != null) {
+                    result(UiState.Error(error.message ?: "Unknown Error"))
+                    return@addSnapshotListener
+                }
+
+                if (value != null && value.exists()) {
+                    val user = value.toObject(User::class.java)
+                    if (user?.active == false) {
+                        // Use a coroutine to update the active field
+                        GlobalScope.launch {
+                            try {
+                                firestore.collection(USER_COLLECTION).document(uid).update("active", true).await()
+                            } catch (e: Exception) {
+                                result(UiState.Error("Failed to update user status: ${e.localizedMessage}"))
+                                return@launch
+                            }
+                            result(UiState.Success(user))
+                        }
+                    } else {
+                        result(UiState.Success(user))
+                    }
+                } else {
+                    result(UiState.Success(null))
+                }
+            }
+    }
+
+    override suspend fun OnChangePin(id: String, pin: Pin): Result<String> {
+        return try {
+            // Attempt to update the pin in Firestore
+            firestore.collection(USER_COLLECTION)
+                .document(id)
+                .update("pin", pin)
+                .await()
+
+            // Return success if the update is successful
+            Result.success("PIN updated successfully")
+        } catch (e: Exception) {
+            // Handle errors and return a failure result
+            Result.failure(e)
+        }
+    }
+
+
+    override suspend fun OnBiometricEnabled(id: String, pin: Pin): Result<String> {
+        return try {
+
+            firestore.collection(USER_COLLECTION)
+                .document(id)
+                .update("pin", pin)
+                .await()
+
+
+            Result.success("Biometric authentication status updated successfully")
+        } catch (e: Exception) {
+            // Handle errors and return a failure result
+            Result.failure(e)
+        }
+    }
+
+
+    override suspend fun sendOtp(
+        activity: Activity,
+        phoneNumber: String,
+        callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
+    ) {
+        val options = PhoneAuthOptions.newBuilder(auth)
+            .setPhoneNumber("+63$phoneNumber")
+            .setTimeout(60L, TimeUnit.SECONDS)
+            .setActivity(activity)
+            .setCallbacks(callbacks)
+            .build()
+        PhoneAuthProvider.verifyPhoneNumber(options)
+    }
+
+    override suspend fun verifyOtp(
+        verificationId: String, otp: String
+    ): Result<Boolean> {
+        return try {
+            val credential = PhoneAuthProvider.getCredential(verificationId, otp)
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.success(false)
         }
     }
 

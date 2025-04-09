@@ -14,6 +14,8 @@ import com.flysolo.etrikedriver.screens.auth.verification.VerificationViewModel
 import com.flysolo.etrikedriver.config.AppRouter
 import com.flysolo.etrikedriver.screens.auth.login.LoginScreen
 import com.flysolo.etrikedriver.screens.auth.login.LoginViewModel
+import com.flysolo.etrikedriver.screens.auth.pin.PinScreen
+import com.flysolo.etrikedriver.screens.auth.pin.PinViewModel
 
 
 fun NavGraphBuilder.authNavGraph(
@@ -46,6 +48,16 @@ fun NavGraphBuilder.authNavGraph(
                 navHostController = navController,
                 state = viewModel.state,
                 events = viewModel::events
+            )
+        }
+
+        composable(route = AppRouter.PIN.route) {
+            val viewModel = hiltViewModel<PinViewModel>()
+
+            PinScreen(
+                state = viewModel.state,
+                events = viewModel::events,
+                navHostController = navController
             )
         }
 

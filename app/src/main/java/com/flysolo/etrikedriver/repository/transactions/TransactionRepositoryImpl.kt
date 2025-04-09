@@ -25,7 +25,6 @@ const val TRANSACTION_COLLECTION  = "transactions"
 class TransactionRepositoryImpl(
   private  val firestore: FirebaseFirestore,
 ): TransactionRepository {
-
     private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     override suspend fun getAllPendingTransaction(callback: (Result<List<TransactionWithUser>>) -> Unit) {
         firestore.collection(TRANSACTION_COLLECTION)
@@ -65,15 +64,14 @@ class TransactionRepositoryImpl(
         franchiseID: String
     ): Result<String> {
         return try {
-            val result = firestore
+            firestore
                 .collection(TRANSACTION_COLLECTION)
                 .document(transactionID)
-                .update(
-                    "driverID",driverID,
-                    "franchiseID",franchiseID,
+                .update("driverID",driverID, "franchiseID",franchiseID,
                     "status",TransactionStatus.ACCEPTED,
                     "updatedAt",Date()
                 ).await()
+
             Result.success("Successfully Accepted")
         } catch (e : Exception) {
             Result.failure(e)

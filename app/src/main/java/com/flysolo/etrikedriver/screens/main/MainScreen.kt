@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Message
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,7 +31,9 @@ import androidx.navigation.compose.rememberNavController
 
 import com.flysolo.etrikedriver.R
 import com.flysolo.etrikedriver.config.AppRouter
+import com.flysolo.etrikedriver.models.franchise.FranchiseStatus
 import com.flysolo.etrikedriver.screens.main.components.BottomNavigation
+import com.flysolo.etrikedriver.screens.main.no_active_franchise.NoActiveFranchise
 
 import com.flysolo.etrikedriver.screens.nav.BottomNavigationItems
 import com.flysolo.etrikedriver.screens.nav.MainNavGraph
@@ -43,6 +46,7 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     state: MainState,
     events: (MainEvents) -> Unit,
+    mainNavHostController: NavHostController,
     navHostController: NavHostController = rememberNavController()
 ) {
     val items = BottomNavigationItems.BOTTOM_NAV
@@ -65,75 +69,84 @@ fun MainScreen(
                 Text(state.errors)
             }
         } else ->{
-            if (items.any { it.route == currentRoute }) {
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                                actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            navigationIcon = {
-                                if (currentRoute == AppRouter.PROFILE.route) {
-                                    BackButton { navHostController.popBackStack() }
-                                }
+            if (state.franchises.any { it.status == FranchiseStatus.ACTIVE }) {
+                if (items.any { it.route == currentRoute }) {
+                    Scaffold(
+                        topBar = {
+                            TopAppBar(
+                                colors = TopAppBarDefaults.topAppBarColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                navigationIcon = {
+                                    if (currentRoute == AppRouter.PROFILE.route) {
+                                        BackButton { navHostController.popBackStack() }
+                                    }
 
-                            },
-                            title = {
-                                Box(
-                                    modifier = modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Image(
-                                        painter = painterResource(R.drawable.top_etrike),
-                                        contentDescription = "Top Bar"
-                                    )
+                                },
+                                title = {
+                                    Box(
+                                        modifier = modifier.fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Image(
+                                            painter = painterResource(R.drawable.top_etrike),
+                                            contentDescription = "Top Bar"
+                                        )
+                                    }
+                                },
+                                actions = {
+                                    IconButton(
+                                        onClick = {
+                                            navHostController.navigate(AppRouter.MESSAGES.navigate(state.user?.id ?: ""))
+                                        }
+                                    ) { Icon(
+                                        imageVector = Icons.Rounded.Message,
+                                        contentDescription = "Message"
+                                    ) }
                                 }
-                            },
-                            actions = {
-                                IconButton(
-                                    onClick = {}
-                                ) { Icon(
-                                    imageVector = Icons.Rounded.Notifications,
-                                    contentDescription = "Notifications"
-                                ) }
-                            }
-                        )
-                    },
-                    bottomBar = {
-                        if (currentRoute != AppRouter.PROFILE.route) {
-                            BottomNavigation(
-                                items = items,
-                                navBackStackEntry = navBackStackEntry,
-                                navHostController = navHostController
                             )
-                        }
+                        },
+                        bottomBar = {
+                            if (currentRoute != AppRouter.PROFILE.route) {
+                                BottomNavigation(
+                                    items = items,
+                                    navBackStackEntry = navBackStackEntry,
+                                    navHostController = navHostController
+                                )
+                            }
 
-                    }
-                ){
-                    Box(
-                        modifier = modifier
-                            .fillMaxSize()
-                            .padding(it)
-                    ) {
+                        }
+                    ){
+                        Box(
+                            modifier = modifier
+                                .fillMaxSize()
+                                .padding(it)
+                        ) {
 
-                        MainNavGraph(
-                            navHostController = navHostController,
-                            user = state.user
-                        )
-                        if (state.franchises.isEmpty()) {
-                            BannerMessage("No available franchise passengers cannot see you.")
+                            MainNavGraph(
+                                navHostController = navHostController,
+                                user = state.user,
+                                mainNavHostController = mainNavHostController,
+                            )
+                            if (state.franchises.isEmpty()) {
+                                BannerMessage("No available franchise passengers cannot see you.")
+                            }
                         }
                     }
+                } else {
+                    MainNavGraph(
+                        navHostController = navHostController,
+                        user = state.user,
+                        mainNavHostController = mainNavHostController,
+                    )
                 }
             } else {
-                MainNavGraph(
-                    navHostController = navHostController,
-                    user = state.user
-                )
+                NoActiveFranchise()
             }
+
         }
     }
 }

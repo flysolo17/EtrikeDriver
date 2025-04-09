@@ -16,5 +16,6 @@
 
     <string name="reset_message">If you lost your password and wish to reset it , enter your email below and so that we can send you the reset link.</string>
     <string name="reset_password">Reset Password</string>
+    <string name="fullname">Fullname</string>
 
 </resources>

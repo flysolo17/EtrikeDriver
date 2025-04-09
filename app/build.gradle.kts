@@ -90,6 +90,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
     implementation(libs.places)
+    implementation(libs.androidx.appcompat)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -120,13 +121,13 @@ dependencies {
 
     //window size
     implementation ("androidx.compose.material3:material3-window-size-class:1.2.1")
+    //icons
+    implementation("androidx.compose.material:material-icons-extended:1.5.3")
 
 
     //for color picker
     implementation("com.maxkeppeler.sheets-compose-dialogs:core:1.2.0")
     implementation("com.maxkeppeler.sheets-compose-dialogs:color:1.2.0")
-    //icons
-    implementation("androidx.compose.material:material-icons-extended:1.5.3")
 
     implementation ("androidx.compose.foundation:foundation:1.7.4")
 
@@ -165,6 +166,17 @@ dependencies {
 
 
 
+    //biometric
+    implementation("androidx.biometric:biometric:1.1.0")
+
+
+    //phone auth
+    implementation("com.google.android.play:integrity:1.4.0")
+    implementation("com.google.android.gms:play-services-safetynet:18.1.0")
+
+    //qr scanner
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation ("com.google.zxing:core:3.4.1")
 
 }
 

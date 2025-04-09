@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.flysolo.etrikedriver.models.transactions.Transactions
 import com.flysolo.etrikedriver.repository.auth.AuthRepository
 import com.flysolo.etrikedriver.repository.transactions.TransactionRepository
+import com.flysolo.etrikedriver.repository.wallet.WalletRepository
 import com.flysolo.etrikedriver.utils.UiState
 import com.flysolo.etrikedriver.utils.getLatLngFromAddress
 import com.flysolo.etrikedriver.utils.shortToast
@@ -24,16 +25,53 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val authRepository : AuthRepository,
-    private val transactionsRepository: TransactionRepository
+    private val transactionsRepository: TransactionRepository,
+    private val walletRepository: WalletRepository,
 ) : ViewModel() {
     var state by mutableStateOf(HomeState())
+    init {
+        events(HomeEvents.OnGetUser)
+    }
     fun events(e : HomeEvents) {
         when(e) {
-            is HomeEvents.OnSetUser -> {
-                state = state.copy(user = e.user)
-            }
+            is HomeEvents.OnGetUser -> getUser()
             is HomeEvents.OnGetOngoingTrips -> getTransactions(driverID = e.driverID)
             is HomeEvents.OnPickup -> pickup(e.transactions,e.context)
+            is HomeEvents.OnGetWallet -> getWallet(e.id)
+        }
+    }
+    private fun getWallet(id: String) {
+        viewModelScope.launch {
+            walletRepository.getMyWallet(id) {
+                state = when(it) {
+                    is UiState.Error -> state.copy(
+                        isLoading = false,
+                        errors = it.message
+                    )
+                    UiState.Loading -> state.copy(
+                        isLoading = true,
+                        errors = null
+                    )
+                    is UiState.Success -> state.copy(
+                        isLoading = false,
+                        errors = null,
+                        wallet = it.data
+                    )
+                }
+            }
+        }
+    }
+
+
+    private fun getUser() {
+        viewModelScope.launch {
+            authRepository.getCurrentUserInRealtime {
+                if (it is UiState.Success) {
+                    state = state.copy(
+                        user = it.data
+                    )
+                }
+            }
         }
     }
 

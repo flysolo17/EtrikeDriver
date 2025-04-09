@@ -82,9 +82,10 @@ class QueueViewModel @Inject constructor(
             state = state.copy(isLoading = true)
             transactionRepository.getAllPendingTransaction()  {
                 it.onSuccess {
+                    val filteredTransactions = it.filter {e-> e.transactions.scheduleDate == null }
                     state = state.copy(
                         isLoading = false,
-                        transactionWithUser = it
+                        transactionWithUser = filteredTransactions
                     )
                 }.onFailure {
                     state = state.copy(

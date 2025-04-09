@@ -84,13 +84,22 @@ fun LoginScreen(
         handleSignInResult(activityResult.data, oneTapClient, context, events)
     }
 
-    LaunchedEffect(state) {
-        if (state.user != null) {
-            val route = if (state.user.isVerified) AppRouter.MAIN.route else AppRouter.VERIFICATION.route
+    LaunchedEffect(state.user) {
+        state.user?.let { user ->
+            val route = when {
+                !user.isVerified -> AppRouter.VERIFICATION.route
+                !user.user.pin?.pin.isNullOrEmpty() -> AppRouter.PIN.route
+                else -> AppRouter.MAIN.route
+            }
             navHostController.navigate(route) {
                 popUpTo(AppRouter.LOGIN.route) { inclusive = true }
-
             }
+        }
+    }
+
+    LaunchedEffect(state.errors) {
+        state.errors?.let {
+            context.shortToast("${state.errors}")
         }
     }
 
@@ -190,68 +199,10 @@ fun LoginScreen(
                 }
             }
 
-            Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(
-                        vertical = 24.dp
-                    ),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                HorizontalDivider(
-                    modifier = modifier.weight(1f)
-                )
-                Text(
-                    "Or continue with Google",
-                 style = MaterialTheme.typography.labelSmall.copy(
-                     color = Color.Gray
-                 )
-                )
-                HorizontalDivider(
-                    modifier = modifier.weight(1f)
-                )
-            }
-
-            OutlinedButton(
-                onClick = { startGoogleSignIn(context, oneTapClient, launcher) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White
-                ),
-                enabled = !state.isSigningWithGoogle,
-                modifier = modifier
-                    .wrapContentSize()
-                    .padding(
-                        bottom = 12.dp
-                    ),
-            ) {
-                if (state.isSigningWithGoogle) {
-                    CircularProgressIndicator(
-                        modifier = modifier.size(24.dp)
-                    )
-                } else {
-                    Row(
-                        modifier = modifier
-                            .wrapContentSize()
-                            .background(
-                                color = Color.White
-                            ),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_google),
-                            contentDescription = "Google icon",
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = modifier.width(8.dp))
-                        Text("Continue with Google", color = Color.Black)
-                    }
-                }
-            }
             Spacer(
                 modifier = modifier.weight(1f)
             )
+
             TermsAndPrivacyText(
                 modifier = modifier
                     .wrapContentSize()

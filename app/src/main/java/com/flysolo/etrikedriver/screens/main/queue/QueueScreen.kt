@@ -61,6 +61,8 @@ import com.flysolo.etrikedriver.screens.main.components.ViewTransactionBottomShe
 import com.flysolo.etrikedriver.screens.shared.Avatar
 import com.flysolo.etrikedriver.screens.shared.BackButton
 import com.flysolo.etrikedriver.utils.calculateDistanceInKm
+import com.flysolo.etrikedriver.utils.display
+import com.flysolo.etrikedriver.utils.displayDate
 import com.flysolo.etrikedriver.utils.getLatLngFromAddress
 import com.flysolo.etrikedriver.utils.toPhp
 import com.google.android.gms.location.LocationServices
@@ -282,8 +284,14 @@ fun TransactionWithUserCard(
     val distanceInKm = leg?.distance?.value?.let {
         it / 1000.0
     }
+
     val cost = distanceInKm?.let { it * 20 }
     ListItem(
+        overlineContent = {
+            if (transaction.scheduleDate != null) {
+                Text("${transaction.scheduleDate.display()}", style = MaterialTheme.typography.titleSmall)
+            }
+        },
         leadingContent = {
             Avatar(
                 url = user?.profile ?: "",
@@ -320,5 +328,4 @@ fun TransactionWithUserCard(
 
     )
 }
-
 private const val REQUEST_LOCATION_PERMISSION = 1

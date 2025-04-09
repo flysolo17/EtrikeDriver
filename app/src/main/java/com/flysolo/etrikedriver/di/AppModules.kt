@@ -1,6 +1,8 @@
 package com.flysolo.etrikedriver.di
 
 
+import android.content.Context
+import com.flysolo.etrikedriver.repository.wallet.WalletRepositoryImpl
 import com.flysolo.etrikedriver.BuildConfig
 import com.flysolo.etrikedriver.repository.auth.AuthRepository
 import com.flysolo.etrikedriver.repository.auth.AuthRepositoryImpl
@@ -12,7 +14,9 @@ import com.flysolo.etrikedriver.repository.messages.MessageRepository
 import com.flysolo.etrikedriver.repository.messages.MessageRepositoryImpl
 import com.flysolo.etrikedriver.repository.transactions.TransactionRepository
 import com.flysolo.etrikedriver.repository.transactions.TransactionRepositoryImpl
+import com.flysolo.etrikedriver.repository.wallet.WalletRepository
 import com.flysolo.etrikedriver.services.GoogleDirectionsService
+import com.flysolo.etrikedriver.services.pin.PinEncryptionManager
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -22,6 +26,7 @@ import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -106,6 +111,22 @@ object AppModule {
     @Singleton
     fun provideMessage(auth: FirebaseAuth,firestore :FirebaseFirestore): MessageRepository {
         return MessageRepositoryImpl(auth,firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun providePinEncryption(
+        @ApplicationContext context: Context
+    ) : PinEncryptionManager {
+        return PinEncryptionManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWalletRepository(
+        firestore: FirebaseFirestore
+    ) : WalletRepository {
+        return WalletRepositoryImpl(firestore)
     }
 
 

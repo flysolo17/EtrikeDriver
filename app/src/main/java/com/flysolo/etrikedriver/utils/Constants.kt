@@ -3,10 +3,13 @@ package com.flysolo.etrikedriver.utils
 import java.util.Locale.*
 
 import android.content.Context
+import android.content.Intent
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.net.Uri
 import android.widget.Toast
+import androidx.browser.customtabs.CustomTabsIntent
 import com.google.android.gms.maps.model.LatLng
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -102,4 +105,35 @@ fun Double.toPhp(): String {
 fun Date.display(): String {
     val formatter = SimpleDateFormat("MMM dd, hh:mm aa", Locale.getDefault())
     return formatter.format(this)
+}
+
+
+fun Date?.displayDate(): String {
+    return if (this != null) {
+        val dateFormat = SimpleDateFormat("MMM, dd", Locale.getDefault())
+        dateFormat.format(this)
+    } else {
+        "No date"
+    }
+}
+
+fun Date?.displayTime(): String {
+    return if (this != null) {
+        val timeFormat = SimpleDateFormat("hh:mm aa", Locale.getDefault())
+        timeFormat.format(this)
+    } else {
+        ""
+    }
+}
+
+fun Context.navigateToApprovedUrl(
+    url  : String
+) {
+    try {
+        val customTabsIntent = CustomTabsIntent.Builder().build()
+        customTabsIntent.launchUrl(this, Uri.parse(url))
+    } catch (e: Exception) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        this.startActivity(intent)
+    }
 }

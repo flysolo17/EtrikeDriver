@@ -6,13 +6,14 @@ import com.flysolo.etrikedriver.models.users.User
 
 
 sealed interface HomeEvents {
-    data class OnSetUser(
-        val user: User ?
-    ) : HomeEvents
+    data object OnGetUser : HomeEvents
 
     data class OnGetOngoingTrips(val driverID: String) : HomeEvents
 
     data class OnPickup(val transactions : Transactions,val context : Context) : HomeEvents
 
+    data class OnGetWallet(
+        val id : String
+    ) : HomeEvents
 
 }

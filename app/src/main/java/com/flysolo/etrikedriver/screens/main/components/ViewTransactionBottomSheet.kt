@@ -3,6 +3,7 @@ package com.flysolo.etrikedriver.screens.main.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,6 +48,8 @@ import com.flysolo.etrikedriver.models.users.User
 import com.flysolo.etrikedriver.screens.main.bottom_nav.utils.EtrikeMap
 import com.flysolo.etrikedriver.screens.main.bottom_nav.utils.InformationCard
 import com.flysolo.etrikedriver.screens.shared.Avatar
+import com.flysolo.etrikedriver.utils.displayDate
+import com.flysolo.etrikedriver.utils.displayTime
 import com.flysolo.etrikedriver.utils.getLatLngFromAddress
 import com.flysolo.etrikedriver.utils.toPhp
 import com.google.android.gms.maps.model.LatLng
@@ -73,8 +76,8 @@ fun ViewTransactionBottomSheet(
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = false,
     )
-    val pickUpLocation = transaction.rideDetails?.routes?.firstOrNull()?.legs?.firstOrNull()?.start_address
-    val endLocation = transaction.rideDetails?.routes?.firstOrNull()?.legs?.firstOrNull()?.end_address
+    val pickUpLocation = transaction.locationDetails.pickup?.name
+    val endLocation = transaction.locationDetails?.dropOff?.name
 
     val route = transaction.rideDetails?.routes?.firstOrNull()
     val leg = route?.legs?.firstOrNull()
@@ -102,6 +105,32 @@ fun ViewTransactionBottomSheet(
                     contentAlignment = Alignment.Center
                 ) {
                     Text("Trip Information")
+                }
+            }
+            item(span = { GridItemSpan((2)) }) {
+                Row(
+                    modifier = modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                    ) {
+                        Text("Status", style = MaterialTheme.typography.labelSmall.copy(
+                            color = Color.Gray
+                        ))
+                        Text("${transaction.status.name}", style = MaterialTheme.typography.titleSmall)
+                    }
+                    if (transaction.scheduleDate != null) {
+                        Column(
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            Text("${transaction.scheduleDate.displayDate()}", style = MaterialTheme.typography.titleMedium)
+                            Text("${transaction.scheduleDate.displayTime()}", style = MaterialTheme.typography.labelSmall.copy(
+                                color = Color.Gray
+                            ))
+                        }
+                    }
+
                 }
             }
             item(span = { GridItemSpan((2)) }) {

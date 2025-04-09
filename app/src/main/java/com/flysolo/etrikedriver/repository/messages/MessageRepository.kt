@@ -1,6 +1,7 @@
 package com.flysolo.etrikedriver.repository.messages
 
 import com.flysolo.etrikedriver.models.messages.Message
+import com.flysolo.etrikedriver.models.messages.UserWithMessage
 import com.flysolo.etrikedriver.utils.UiState
 
 
@@ -18,4 +19,9 @@ interface MessageRepository {
     ) : Result<List<Message>>
 
 
+
+    suspend fun getUserWithMessages(
+        myID: String,
+        result: (UiState<List<UserWithMessage>>) -> Unit
+    )
 }
