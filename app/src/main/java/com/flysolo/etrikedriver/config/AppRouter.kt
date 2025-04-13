@@ -61,4 +61,17 @@ sealed class AppRouter(
             return "cashout/$id"
         }
     }
+
+
+    data object VIEW_BOOKINGS : AppRouter(route = "view-bookings/{uid}") {
+        fun navigate(uid: String): String {
+            return "view-bookings/$uid"
+        }
+    }
+
+    data object RECENT_ACTIVITIES : AppRouter(route = "recent-activities/{uid}") {
+        fun navigate(uid: String): String {
+            return "recent-activities/$uid"
+        }
+    }
 }

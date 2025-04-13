@@ -15,7 +15,12 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.Date
@@ -248,6 +253,26 @@ class TransactionRepositoryImpl(
             }
     }
 
+
+    override suspend fun getAllMyTrips(passengerID: String): Flow<List<Transactions>> = callbackFlow {
+        val listenerRegistration = firestore.collection(TRANSACTION_COLLECTION)
+            .whereEqualTo("passengerID", passengerID)
+            .orderBy("updatedAt", Query.Direction.DESCENDING)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error) // Close flow on error
+                    return@addSnapshotListener
+                }
+                snapshot?.let {
+                    trySend(it.toObjects(Transactions::class.java)).isSuccess
+                }
+            }
+
+        awaitClose {
+            listenerRegistration.remove()
+        }
+    }.catch { emit(emptyList()) }
 
 
 }

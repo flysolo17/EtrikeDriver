@@ -147,15 +147,19 @@ fun ProfileScreen(
                     ActionButtons(
                         icon = Icons.Default.Book,
                         label = "Bookings",
-                    ) { }
-                    ActionButtons(
-                        icon = Icons.Default.QrCodeScanner,
-                        label = "Scan",
-                    ) { }
+                    ) {
+                        navHostController.navigate(AppRouter.VIEW_BOOKINGS.navigate(
+                            state.user?.id ?: ""
+                        ))
+                    }
                     ActionButtons(
                         icon = Icons.Default.History,
                         label = "Recent Activities",
-                    ) { }
+                    ) {
+                        navHostController.navigate(AppRouter.RECENT_ACTIVITIES.navigate(
+                            state.user?.id ?: ""
+                        ))
+                    }
                     ActionButtons(
                         icon = Icons.Default.Edit,
                         label = "Edit Profile",

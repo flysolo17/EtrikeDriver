@@ -8,6 +8,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.flysolo.etrike.screens.main.bottom_nav.profile.view_bookings.ViewBooking
 import com.flysolo.etrike.screens.main.create_biometric.CreateBiometricViewModel
 import com.flysolo.etrike.screens.main.security.SecuritySettingsViewModel
 import com.flysolo.etrike.screens.main.view_trip.ViewTripScreen
@@ -34,6 +35,9 @@ import com.flysolo.etrikedriver.screens.main.bottom_nav.home.HomeScreen
 import com.flysolo.etrikedriver.screens.main.bottom_nav.home.HomeViewModel
 import com.flysolo.etrikedriver.screens.main.bottom_nav.profile.ProfileEvents
 import com.flysolo.etrikedriver.screens.main.bottom_nav.profile.ProfileScreen
+import com.flysolo.etrikedriver.screens.main.bottom_nav.profile.recent.RecentActivityScreen
+import com.flysolo.etrikedriver.screens.main.bottom_nav.profile.recent.RecentActivityViewModel
+import com.flysolo.etrikedriver.screens.main.bottom_nav.profile.view_bookings.ViewBookingViewModel
 import com.flysolo.etrikedriver.screens.main.bottom_nav.trips.TripEvents
 import com.flysolo.etrikedriver.screens.main.bottom_nav.trips.TripScreen
 import com.flysolo.etrikedriver.screens.main.bottom_nav.trips.TripViewModel
@@ -250,6 +254,35 @@ fun MainNavGraph(
             val viewModel = hiltViewModel<CashOutViewModel>()
             CashOutScreen(
                 id = myID,
+                state = viewModel.state,
+                events = viewModel::events,
+                navHostController = navHostController
+            )
+        }
+
+        composable(
+            route = AppRouter.VIEW_BOOKINGS.route,
+            arguments = listOf(navArgument("uid") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val  passengerID = backStackEntry.arguments?.getString("uid") ?: ""
+
+            val viewModel = hiltViewModel<ViewBookingViewModel>()
+            ViewBooking(
+                uid = passengerID,
+                state = viewModel.state,
+                events = viewModel::events,
+                navHostController = navHostController
+            )
+        }
+
+        composable(
+            route = AppRouter.RECENT_ACTIVITIES.route,
+            arguments = listOf(navArgument("uid") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val  passengerID = backStackEntry.arguments?.getString("uid") ?: ""
+            val viewModel = hiltViewModel<RecentActivityViewModel>()
+            RecentActivityScreen(
+                uid = passengerID,
                 state = viewModel.state,
                 events = viewModel::events,
                 navHostController = navHostController
